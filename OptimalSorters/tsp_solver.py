@@ -3,8 +3,27 @@ from scipy.sparse import coo_matrix
 from scipy.optimize import LinearConstraint, Bounds, milp
 import itertools
 import random
+from RVP_Metrics.metrics import Metric
 
-def tsp_solver_mtz(c, n):
+from MyUtils.distance_matrix import create_matrices_me, create_matrices_ns
+
+def extract_tour_order(res, n):
+    x = res.x[:(n+1)*(n+1)].reshape((n+1,n+1))
+    #print(x)
+    tour = []
+    current = n
+
+    while len(tour) < n:
+        next_city = np.argmax(x[current])
+        if next_city == n:
+            current = next_city
+            continue
+        tour.append(next_city)
+        current = next_city
+
+    return tour
+
+def tsp_solver_mtz(c, n, time_limit_seconds=60):
     c = c.reshape(-1)
     lower_bound = []
     upper_bound = []
@@ -64,16 +83,16 @@ def tsp_solver_mtz(c, n):
 
     integrality = np.zeros(n*n+n-1, dtype=int)
     integrality[:n*n] = 1
-    options = {"time_limit": 60.0}
+    options = {"time_limit": time_limit_seconds}
     res = milp(c=c, constraints=constraints, bounds=bounds, integrality=integrality, options=options)
 
     # #print the results
-    if res.success:
-        print("Optimization successful!")
+    #if res.success:
+      #  print("Optimization successful!")
         ##print(f"Optimal decision variables (x): {res.x}")
         #print(f"Optimal objective value: {res.fun}")
-    elif res.status == 1:
-        print(f"Time limit reached! Best solution found so far: {res.x}")
+    #elif res.status == 1:
+     #   print(f"Time limit reached! Best solution found so far: {res.x}")
     #else:
         #print(f"Optimization failed: {res.message}")
     
@@ -147,28 +166,31 @@ def tsp_solver_dfj(c, n):
     #else:
         #print(f"Optimization failed: {res.message}")
 
-def extract_tour_order(res, n):
-    x = res.x[:(n+1)*(n+1)].reshape((n+1,n+1))
-    #print(x)
-    tour = []
-    current = n
+def tsp_reorder_matrix_opt(heatmap, n, m, metric=Metric.NS, ret_res=False, time_limit_seconds=60):
+    A = heatmap
+    (n,m) = A.shape
+    if metric == Metric.NS:
+        c_row, c_col = create_matrices_ns(A)
+    elif metric == Metric.ME4:
+        c_row, c_col = create_matrices_me(A)
+    else:
+        return None
+    res_row = tsp_solver_mtz(c_row, n+1, time_limit_seconds=time_limit_seconds)
+    row_order = extract_tour_order(res_row, n)
 
-    while len(tour) < n:
-        next_city = np.argmax(x[current])
-        if next_city == n:
-            current = next_city
-            continue
-        tour.append(next_city)
-        current = next_city
+    res_col = tsp_solver_mtz(c_col, m+1, time_limit_seconds=time_limit_seconds)
+    col_order = extract_tour_order(res_col, m)
 
-    return tour
+    if ret_res:
+        return heatmap[row_order][:, col_order], res_row, res_col, row_order, col_order
+    return heatmap[row_order][:, col_order], row_order, col_order
 
 
-def tsp_reorder_matrix_opt(heatmap, n, m):
+def _tsp_reorder_matrix_opt(heatmap, n, m, ret_res=False, time_limit_seconds=60):
     A = heatmap
     (n,m) = A.shape
     A2 = A*A
-    A2_col_sum = np.sum(A2, axis=1)
+    #A2_col_sum = np.sum(A2, axis=1)
     c_row = np.zeros(shape=(n+1,n+1), dtype=np.float64)
 
     for h in range(n):
@@ -176,11 +198,11 @@ def tsp_reorder_matrix_opt(heatmap, n, m):
             #c_row[h,i] += 2*A2_col_sum[i]
             for j in range(m):
                 #c_row[h,i] += - 4*A[h,j]*A[i,j]
-                c_row[h, i] += - 4*A[h,j]*A[i,j] + 2*A2[i, j] + 2*A2[h,j]
+                c_row[h, i] += - 4*A[h,j]*A[i,j] + 2*A2[i, j] + 2*A2[h,j] # = 2*(Ahj - Aij)**2
                 #if i == 0 or i == n-1:
                  #   c_row[h, i] += - A2[h,j]
 
-    res_row = tsp_solver_mtz(c_row, n+1)
+    res_row = tsp_solver_mtz(c_row, n+1, time_limit_seconds=time_limit_seconds)
     row_order = extract_tour_order(res_row, n)
 
     A2_row_sum = np.sum(A2, axis=0)
@@ -195,17 +217,19 @@ def tsp_reorder_matrix_opt(heatmap, n, m):
                 #if k == 0 or k == m-1:
                   #  c_col[j,k] += - A2[i,j]
 
-    res_col = tsp_solver_mtz(c_col, m+1)
+    res_col = tsp_solver_mtz(c_col, m+1, time_limit_seconds=time_limit_seconds)
     col_order = extract_tour_order(res_col, m)
 
     score = None # ill do this later
+    if ret_res:
+        return heatmap[row_order][:, col_order], res_row, res_col, score, row_order, col_order
     return heatmap[row_order][:, col_order], score, row_order, col_order
 
 def tsp_reorder_matrix_opt_me(heatmap, n, m): # confirmed that it works
     A = heatmap
     (n,m) = A.shape
     A2 = A*A
-    A2_col_sum = np.sum(A2, axis=1)
+#    A2_col_sum = np.sum(A2, axis=1)
     c_row = np.zeros(shape=(n+1,n+1), dtype=np.float64)
 
     for h in range(n):
