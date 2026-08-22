@@ -25,3 +25,16 @@ def tsp_lk(H, metric : Metric = Metric.NS, runs=10):
     print(rows, cols)
 
     return H[rows][:, cols]
+
+class TSP_LK:
+    def __init__(self, metric, runs = 10):
+        self.runs = runs
+        self.metric = metric
+
+    def get_name(self):
+        return f'TSP_LK_runs={self.runs}'
+
+    def __call__(self, H, metric=None, *args, **kwds):
+        if metric is not None:
+            self.metric = metric
+        return tsp_lk(H, metric=self.metric, runs=self.runs)

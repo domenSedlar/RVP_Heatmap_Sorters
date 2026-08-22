@@ -51,3 +51,10 @@ def bae(H, metric=Metric.NS):
         rows, cols = bae_me(H)
 
     return H[rows][:, cols]
+
+class BAE:
+    def get_name(self):
+        return 'BAE'
+    
+    def __call__(self, H, metric=Metric.NS, *args, **kwds):
+        return bae(H, metric=metric)

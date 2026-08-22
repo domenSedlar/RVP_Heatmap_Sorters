@@ -269,6 +269,19 @@ def test_reordering():
     heatmap = np.array([[random.randint(0,1) for i in range(m)] for _ in range(n)])
     heatmap, _,_,_ = tsp_reorder_matrix_opt(heatmap, n, m)
 
+class TSP_LIN:
+    def __init__(self, metric=Metric.NS, time_limit_seconds=60):
+        self.time_lim = time_limit_seconds
+        self.metric = metric
+
+    def get_name(self):
+        return f'TSP_LIN_TimeLim={self.time_lim}'
+
+    def __call__(self, H, metric=None, *args, **kwds):
+        if metric is not None:
+            self.metric = metric
+        return tsp_reorder_matrix_opt(H, 0,0, metric=self.metric, ret_res=False, time_limit_seconds=self.time_lim)
+
 
 if __name__ == "__main__":
     test_reordering()

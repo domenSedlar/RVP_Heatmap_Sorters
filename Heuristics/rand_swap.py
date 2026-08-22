@@ -201,3 +201,22 @@ def rand_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, num_of_
             break
 
     return A[rows][:, cols]
+
+class RandomSorter:
+    def __init__(self, func, nm, metric, tries=30, temperature=0.1, cooling_rate=0.005, num_of_iterations=1000):
+        self.func = func
+        self.nm = '_'.join([nm, 'Tries='+str(tries), 'Temp='+str(temperature),'Cooling='+str(cooling_rate), 'NumIter='+str(num_of_iterations)])
+        self.metric = metric
+        self.tries = tries
+        self.temperature = temperature
+        self.cooling_rate = cooling_rate,
+        self.num_of_iter = num_of_iterations
+
+    def get_name(self):
+        return self.nm
+
+    def __call__(self, H, metric=None, *args, **kwds):
+        if metric is not None:
+            raise NotImplementedError
+
+        return self.func(H, metric=self.metric, tries=self.tries, temperature=self.temperature, cooling_rate=self.cooling_rate, num_of_iterations=self.num_of_iter)

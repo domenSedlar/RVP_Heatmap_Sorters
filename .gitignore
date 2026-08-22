@@ -4,3 +4,4 @@ OptimalSorters/ALL_tsp/
 OptimalSorters/ALL_tsp.tar
 Data/
 *.parquet
+__pycache__/
