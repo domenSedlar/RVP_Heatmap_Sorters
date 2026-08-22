@@ -2,3 +2,5 @@
 OptimalSorters/ALL_tsp/
 */__pycache__/
 OptimalSorters/ALL_tsp.tar
+Data/
+*.parquet
