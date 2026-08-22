@@ -33,4 +33,4 @@ def hclust_with_olo(H, metric='NS', method='average'):
     rows = _hclust_with_olo(c_row, method=method)
     cols = _hclust_with_olo(c_col, method=method)
 
-    return rows, cols
+    return H[rows][:, cols]

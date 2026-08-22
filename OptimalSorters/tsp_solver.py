@@ -183,7 +183,7 @@ def tsp_reorder_matrix_opt(heatmap, n, m, metric=Metric.NS, ret_res=False, time_
 
     if ret_res:
         return heatmap[row_order][:, col_order], res_row, res_col, row_order, col_order
-    return heatmap[row_order][:, col_order], row_order, col_order
+    return heatmap[row_order][:, col_order]
 
 
 def _tsp_reorder_matrix_opt(heatmap, n, m, ret_res=False, time_limit_seconds=60):

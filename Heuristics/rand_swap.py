@@ -80,7 +80,7 @@ def rand_block_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, n
         temp = max(temp, 0)       
         if not up:
             break
-    return rows, cols
+    return A[rows][:, cols]
 
 def randomly_mirror(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, num_of_iterations=1000):
     #A =  A[row_order][:, col_order]
@@ -137,7 +137,7 @@ def randomly_mirror(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, nu
         temp = max(temp, 0)
         if not up:
             break
-    return rows, cols
+    return A[rows][:, cols]
 
 def rand_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, num_of_iterations=1000):
     #A =  A[row_order][:, col_order]
@@ -200,4 +200,4 @@ def rand_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, num_of_
         if not up:
             break
 
-    return rows, cols
+    return A[rows][:, cols]

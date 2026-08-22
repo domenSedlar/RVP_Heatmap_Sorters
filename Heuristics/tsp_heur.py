@@ -24,4 +24,4 @@ def tsp_lk(H, metric : Metric = Metric.NS, runs=10):
     cols = extract_tour_order(cols, m)
     print(rows, cols)
 
-    return rows, cols
+    return H[rows][:, cols]

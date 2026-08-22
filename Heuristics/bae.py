@@ -50,4 +50,4 @@ def bae(H, metric=Metric.NS):
     elif metric == Metric.ME4:
         rows, cols = bae_me(H)
 
-    return rows, cols
+    return H[rows][:, cols]
