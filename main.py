@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import random
 import time
+import tarfile
 
 from RVP_Metrics.metrics import moore_stress4, me4, full_eval
 
@@ -22,9 +23,7 @@ def get_matrix(filepath):
 
     return A
 
-def ev(filepath, algo):
-    H = get_matrix(filepath)
-
+def ev(H, algo):
     sorted = algo(H)
 
     res = full_eval(sorted)
@@ -38,8 +37,10 @@ def get_size(filepath):
 
     return A.shape
 
-def get_metadata(filenm, dirpath, algo_nm, tm, dataset, metric):
-    (n,m) = get_size(os.path.join(dirpath, filenm))
+
+def get_metadata(filenm, dirpath, algo_nm, tm, dataset, metric, n=None, m=None):
+    if n is None or m is None:
+        (n,m) = get_size(os.path.join(dirpath, filenm))
     row = {
         'file_name': filenm,
         'dir' : dirpath,
@@ -55,6 +56,61 @@ def get_metadata(filenm, dirpath, algo_nm, tm, dataset, metric):
     return row
 
 
+def open_tar_mem(f):
+    data = f.read()
+    text = data.decode().splitlines()
+
+    start = 0
+    for i, line in enumerate(text):
+        if line[0] != '%':
+            start = i+1
+            break
+
+    text = text[start:]
+    
+    parsed_data = [line.strip().split() for line in text if line.strip()]
+    edges = [(int(src), int(dst), float(w)) for src, dst, w in parsed_data]
+    max_node = max(max(src, dst) for src, dst, _ in edges)
+    num_nodes = max_node + 1
+    adj_matrix = np.zeros((num_nodes, num_nodes))
+
+    for src, dst, weight in edges:
+        adj_matrix[src, dst] = weight
+
+    return adj_matrix
+
+def run_on_tar_gz(algo, in_dir, algo_nm, dataset, metric, output_path='results.parquet', only_small=True, csv_file='Data/sparse_matrix_list_new.csv', size_lim=200):
+    table = pd.read_csv(csv_file, sep=';')
+    table = table[table['height'] < size_lim]
+    table = table[table['width'] < size_lim]
+    df = []
+    for i, tr in table.iterrows():
+        tar_pth = tr.loc['new_path']
+
+        with tarfile.open(tar_pth, "r:gz") as src:
+            for member in src.getmembers():
+                if member.name != tr['file_name']:
+                    continue
+                if not (".mtx" in member.name):
+                    continue
+
+                f = src.extractfile(member)
+                H = open_tar_mem(f)
+
+                start_time = time.perf_counter()
+                res = ev(H, algo)
+                end_time = time.perf_counter()
+                tm = end_time - start_time
+
+                row = get_metadata(member.name, tar_pth, algo_nm, tm, dataset, metric, tr.loc['height'], tr.loc['width']) | res
+                df.append(row)
+
+    df = pd.DataFrame(df)
+    
+    df.to_parquet(
+    output_path, engine="fastparquet", append=os.path.exists(output_path), index=False
+        )
+
 def run(algo, in_dir, algo_nm, dataset, metric, output_path='results.parquet', only_small=True):
     if only_small:
         in_dir = os.path.join(in_dir, 'Small')
@@ -63,8 +119,10 @@ def run(algo, in_dir, algo_nm, dataset, metric, output_path='results.parquet', o
     for root, dirs, files in os.walk(in_dir):
         for f in files:
             if '.tsv' in f:
+                H = get_matrix(os.path.join(root, f))
+
                 start_time = time.perf_counter()
-                res = ev(os.path.join(root, f), algo)
+                res = ev(H, algo)
                 end_time = time.perf_counter()
                 tm = end_time - start_time
 
@@ -78,7 +136,7 @@ def run(algo, in_dir, algo_nm, dataset, metric, output_path='results.parquet', o
         )
 
 if __name__ == "__main__":
-    run(
+    run_on_tar_gz(
         algo = bae,
         in_dir = 'Data',
         algo_nm = 'BAE',
