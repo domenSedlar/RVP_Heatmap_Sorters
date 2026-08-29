@@ -25,6 +25,8 @@ def extract_tour_order(res, n):
 
 def tsp_solver_mtz(c, n, time_limit_seconds=60):
     c = c.reshape(-1)
+    if c.shape[0] < 2:
+        return None
     lower_bound = []
     upper_bound = []
     cols = []
@@ -84,6 +86,7 @@ def tsp_solver_mtz(c, n, time_limit_seconds=60):
     integrality = np.zeros(n*n+n-1, dtype=int)
     integrality[:n*n] = 1
     options = {"time_limit": time_limit_seconds}
+    print(c.shape)
     res = milp(c=c, constraints=constraints, bounds=bounds, integrality=integrality, options=options)
 
     # #print the results
@@ -175,10 +178,23 @@ def tsp_reorder_matrix_opt(heatmap, n, m, metric=Metric.NS, ret_res=False, time_
         c_row, c_col = create_matrices_me(A)
     else:
         return None
+
+    if c_row.shape[0] < 4 or c_col.shape[0] < 4:
+        return None
+
     res_row = tsp_solver_mtz(c_row, n+1, time_limit_seconds=time_limit_seconds)
+    if res_row is None:
+        return None
+    if res_row.status == 1:
+        return None # Time limit reached
+
     row_order = extract_tour_order(res_row, n)
 
     res_col = tsp_solver_mtz(c_col, m+1, time_limit_seconds=time_limit_seconds)
+    if res_col is None:
+        return None
+    if res_col.status == 1:
+        return None
     col_order = extract_tour_order(res_col, m)
 
     if ret_res:
@@ -270,7 +286,7 @@ def test_reordering():
     heatmap, _,_,_ = tsp_reorder_matrix_opt(heatmap, n, m)
 
 class TSP_LIN:
-    def __init__(self, metric=Metric.NS, time_limit_seconds=60):
+    def __init__(self, metric=Metric.NS, time_limit_seconds=30):
         self.time_lim = time_limit_seconds
         self.metric = metric
 

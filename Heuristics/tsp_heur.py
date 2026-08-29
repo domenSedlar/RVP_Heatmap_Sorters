@@ -27,7 +27,7 @@ def tsp_lk(H, metric : Metric = Metric.NS, runs=10):
     return H[rows][:, cols]
 
 class TSP_LK:
-    def __init__(self, metric, runs = 10):
+    def __init__(self, metric=Metric.NS, runs = 10):
         self.runs = runs
         self.metric = metric
 

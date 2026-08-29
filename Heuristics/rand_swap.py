@@ -13,7 +13,7 @@ def rand_block_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, n
     score_new = metric(A)
     temp = temperature
 
-    for j in range(num_of_iterations):
+    while True:
         up = False
         for i in range(tries):
             a = random.randint(0,n-1)
@@ -48,7 +48,7 @@ def rand_block_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, n
             break
     temp = temperature
 
-    for j in range(num_of_iterations):
+    while True:
         up = False
         for i in range(tries):
             a = random.randint(0,m-1)
@@ -91,7 +91,7 @@ def randomly_mirror(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, nu
     score_new = metric(A)
     temp = temperature
 
-    for j in range(num_of_iterations):
+    while True:
         up = False
         for i in range(tries):
             a = random.randint(0,n-1)
@@ -115,7 +115,7 @@ def randomly_mirror(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, nu
             break
     temp = temperature
 
-    for j in range(num_of_iterations):
+    while True:
         up = False
         for i in range(tries):
             a = random.randint(0,m-1)
@@ -149,7 +149,7 @@ def rand_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, num_of_
 
     temp = temperature
 
-    for j in range(num_of_iterations):
+    while True:
         up = False
         for i in range(tries):
             a = random.randint(0,n-1)
@@ -176,7 +176,7 @@ def rand_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, num_of_
 
     temp = temperature
 
-    for j in range(num_of_iterations):
+    while True:
         up = False
         for i in range(tries):
             a = random.randint(0,m-1)
@@ -203,13 +203,13 @@ def rand_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, num_of_
     return A[rows][:, cols]
 
 class RandomSorter:
-    def __init__(self, func, nm, metric, tries=30, temperature=0.1, cooling_rate=0.005, num_of_iterations=1000):
+    def __init__(self, func, nm, metric, tries=500, temperature=0.0, cooling_rate=0.000, num_of_iterations=50000): # 500 tries should mean we try 10% of all options
         self.func = func
         self.nm = '_'.join([nm, 'Tries='+str(tries), 'Temp='+str(temperature),'Cooling='+str(cooling_rate), 'NumIter='+str(num_of_iterations)])
         self.metric = metric
         self.tries = tries
         self.temperature = temperature
-        self.cooling_rate = cooling_rate,
+        self.cooling_rate = cooling_rate
         self.num_of_iter = num_of_iterations
 
     def get_name(self):
