@@ -10,11 +10,14 @@ from RVP_Metrics.metrics import moore_stress4, me4, full_eval
 
 from OptimalSorters.tsp_solver import TSP_LIN
 from OptimalSorters.brute_force import brue_force
+from OptimalSorters.tsp_gurobi import TSP_gurobi
 
 from Heuristics.hclust import Hclust
 from Heuristics.bae import BAE
 from Heuristics.rand_swap import rand_swaps, rand_block_swaps, randomly_mirror, RandomSorter
 from Heuristics.tsp_heur import TSP_LK
+
+from chain import Chain
 
 def get_matrix(filepath):
     df = pd.read_csv(filepath, delimiter='\t')
@@ -158,9 +161,12 @@ def save(df, output_path='results.parquet'):
         output_path, engine="fastparquet", append=os.path.exists(output_path), index=False
         )
 
-if __name__ == "__main__":
+def old_code():
     datasets = [
-        ('SparseMatrixSuite', 'Data/Random'),
+        ('SparseMatrixSuite', ''),
+        ('GDS_rand', 'Data/GDS_Random'),
+        ('Random', 'Data/Random'),
+
     ]
     dataset_nm = datasets[0][0]
     dataset = datasets[0][1]
@@ -204,3 +210,24 @@ if __name__ == "__main__":
     
     rnd_blk = RandomSorter(rand_block_swaps, "Block_Swaps", moore_stress4)
     method(rnd_blk)
+
+if __name__ == "__main__":
+    datasets = [
+        ('Random', 'Data/Random'),
+        ]
+    dataset_nm = datasets[0][0]
+    dataset = datasets[0][1]
+
+    bae = BAE()
+
+    hclust = Hclust()
+
+    veriga = Chain([bae, hclust])
+    save(
+        run(
+        algo = veriga,
+        in_dir = dataset,
+        dataset_nm=dataset_nm,
+        metric='NS',
+        output_path='results_test.parquet',
+    ))

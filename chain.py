@@ -4,6 +4,7 @@ from Heuristics.rand_swap import rand_swaps, rand_block_swaps, randomly_mirror
 from Heuristics.tsp_heur import tsp_lk
 
 from OptimalSorters.tsp_solver import tsp_reorder_matrix_opt
+from RVP_Metrics.metrics import Metric
 
 def hclust_wrapper(H, metric):
     return hclust_with_olo(H, metric=metric, method='average')
@@ -22,9 +23,20 @@ def tsp_opt_wrapper(H, metric):
     _, row_order, col_order = tsp_reorder_matrix_opt(H, 0, 0, metric=metric, time_limit_seconds=60)
     return row_order, col_order
 
-def chain(ls, H, metric):
+def chain(ls, H):
     for f in ls:
-        rows, cols = f(H, metric)
-        H = H[rows][:, cols]
+        H = f(H)
 
     return H
+
+
+class Chain:
+    def __init__(self, algos, metric=Metric.NS):
+        self.metric = metric
+        self.algos = algos
+
+    def get_name(self):
+        return '->'.join([a.get_name() for a in self.algos])
+    
+    def __call__(self, H, metric=Metric.NS, *args, **kwds):
+        return chain(self.algos, H)

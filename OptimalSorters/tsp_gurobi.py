@@ -10,6 +10,7 @@ import gurobipy as gp
 from gurobipy import GRB
 
 from MyUtils.distance_matrix import create_matrices_ns
+from RVP_Metrics.metrics import Metric
 
 def shortest_subtour(edges):
     """Given a list of edges, return the shortest subtour (as a list of nodes)
@@ -76,7 +77,7 @@ class TSPCallback:
             )
 
 
-def solve_tsp(nodes, distances):
+def solve_tsp(r):
     """
     Solve a dense symmetric TSP using the following base formulation:
 
@@ -86,7 +87,12 @@ def solve_tsp(nodes, distances):
 
     and subtours eliminated using lazy constraints.
     """
-
+    nodes = list(range(r.shape[0]))
+    points = [(random.randint(0, 100), random.randint(0, 100)) for i in nodes]
+    distances = {
+        (i, j): r[i][j]
+        for i, j in combinations(nodes, 2)
+    }
     with gp.Env() as env, gp.Model(env=env) as m:
         # Create variables, and add symmetric keys to the resulting dictionary
         # 'x', such that (i, j) and (j, i) refer to the same variable.
@@ -107,35 +113,35 @@ def solve_tsp(nodes, distances):
         tour = shortest_subtour(edges)
         assert set(tour) == set(nodes)
 
-        return tour, m.ObjVal
+        return tour
 
 
-if __name__ == "__main__":
+def rm_dummy(tour):
+    dummy = max(tour)
+    order = []
+    for i, v in enumerate(tour):
+        if v == dummy:
+            order += tour[(i+1):]
+            order += tour[:i]
 
-    # Parse arguments
-    if len(sys.argv) < 2:
-        print("Usage: tsp.py npoints <seed>")
-        sys.exit(0)
-    npoints = int(sys.argv[1])
-    seed = int(sys.argv[2]) if len(sys.argv) > 2 else 1
-    n = int(sys.argv[1])
-    m = n
+    return order
 
-    A = np.array([[random.random() for i in range(m)] for i in range(n)])
-    r, c = create_matrices_ns(A)
 
-    # Create n random points in 2D
-    random.seed(seed)
-    nodes = list(range(r.shape[0]))
-    points = [(random.randint(0, 100), random.randint(0, 100)) for i in nodes]
-    distances = {
-        (i, j): r[i][j]
-        for i, j in combinations(nodes, 2)
-    }
+class TSP_gurobi:
+    def __init__(self, metirc=Metric.NS):
+        self.metric = metirc
 
-    tour, cost = solve_tsp(nodes, distances)
-
-    print("")
-    print(f"Optimal tour: {tour}")
-    print(f"Optimal cost: {cost:g}")
-    print("")
+    def get_name(self):
+        return 'TSP_gurobi'
+    
+    def __call__(self, H, metric=Metric.NS, *args, **kwds):
+        if metric == Metric.NS:
+            r, c = create_matrices_ns(H)
+        else:
+            raise NotImplementedError
+        if r.shape[0] > 61 or c.shape[0] > 61:
+            return None
+        rows = rm_dummy(solve_tsp(r))
+        cols = rm_dummy(solve_tsp(c))
+    
+        return H[rows][:, cols]
