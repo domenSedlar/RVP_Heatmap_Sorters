@@ -213,21 +213,24 @@ def old_code():
 
 if __name__ == "__main__":
     datasets = [
-        ('Random', 'Data/Random'),
+        ('GDS_rand', 'Data/GDS_Random'),
         ]
     dataset_nm = datasets[0][0]
     dataset = datasets[0][1]
 
     bae = BAE()
 
-    hclust = Hclust()
+    opt = TSP_LIN()
 
-    veriga = Chain([bae, hclust])
+    veriga = Chain([bae, opt])
     save(
         run(
         algo = veriga,
         in_dir = dataset,
         dataset_nm=dataset_nm,
         metric='NS',
-        output_path='results_test.parquet',
-    ))
+        output_path='results.parquet',
+        only_small=True
+    )
+)
+    print("wow")
