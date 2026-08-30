@@ -43,9 +43,9 @@ def tm_vs_score(df, title='', only_small=True):
     plt.show()
 
 df = read()
-tm_vs_score(df)
-tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset')
-tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset')
+#tm_vs_score(df)
+#tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset')
+#tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset')
 #tm_vs_score(df[df['dataset']=='SparseMatrixSuite'], title='SparseMatrixSuite')
 
 def size_vs_col(df, col='time', only_small=False, title_addon=''):
@@ -64,7 +64,7 @@ def size_vs_col(df, col='time', only_small=False, title_addon=''):
     size_map = {algo: 6.0 if algo == 'TSP_gurobi' or algo == 'TSP_LIN_TimeLim=30' else 1.2 for algo in df['algo'].cat.categories}
     print(size_map)
     plt.figure(figsize=(12, 12))
-    sns.lineplot(data=df, x="n", y=col, hue="algo", marker="o", size='algo', errorbar=None, sizes=size_map)
+    sns.lineplot(data=df, x="n", y=col, hue="algo", errorbar=None)
 
     plt.xlabel("Size")
     plt.ylabel(ylabel)
@@ -73,7 +73,7 @@ def size_vs_col(df, col='time', only_small=False, title_addon=''):
     plt.savefig(f"./Results/{title.replace(' ', '_')}.png", bbox_inches='tight')
     plt.show()
 
-"""data = df
+data = df
 
 size_vs_col(
     df[df['algo'] != 'BAE->Hclust'][df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'],
@@ -111,4 +111,4 @@ size_vs_col(
     df[df['algo'] != 'BAE->Hclust'][df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'],
     col='time',
     title_addon=' on GDS_rand subset'
-    )"""
+    )
