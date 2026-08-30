@@ -5,7 +5,7 @@ import seaborn as sns
 
 def read(path='./results.parquet')->pd.DataFrame:
     df = pd.read_parquet(path)
-    df['max_n'] = df[['row_size', 'col_size']].values.min(1)
+    df['n'] = df[['row_size', 'col_size']].values.min(1)
     df = df[df['algo'] != 'BAE->Hclust']
     #df['algo'] = df['algo'].astype("category")
 
@@ -64,7 +64,7 @@ def size_vs_col(df, col='time', only_small=False, title_addon=''):
     size_map = {algo: 6.0 if algo == 'TSP_gurobi' or algo == 'TSP_LIN_TimeLim=30' else 1.2 for algo in df['algo'].cat.categories}
     print(size_map)
     plt.figure(figsize=(12, 12))
-    sns.lineplot(data=df, x="max_n", y=col, hue="algo", marker="o", size='algo', errorbar=None, sizes=size_map)
+    sns.lineplot(data=df, x="n", y=col, hue="algo", marker="o", size='algo', errorbar=None, sizes=size_map)
 
     plt.xlabel("Size")
     plt.ylabel(ylabel)
