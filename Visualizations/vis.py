@@ -49,10 +49,14 @@ df = read()
 #tm_vs_score(df[df['dataset']=='SparseMatrixSuite'], title='SparseMatrixSuite')
 
 def size_vs_col(df, col='time', only_small=False, title_addon=''):
-    df['algo'] = df['algo'].astype("category")
+    df = df.copy()
+    
     if only_small:
         size_lim = df[df['algo'] == 'TSP_gurobi']['size'].max()
-        df = df[df['size']<=size_lim]
+        df = df[df['size'] <= size_lim]
+
+    df = df.groupby(['algo', 'n'], as_index=False)[col].mean()
+    df = df.sort_values(by=['algo', 'n'])
 
     if col == 'time':
         title = "Execution Time vs. Input Size" + title_addon
@@ -60,19 +64,30 @@ def size_vs_col(df, col='time', only_small=False, title_addon=''):
     else:
         title = "Score vs. Input size" + title_addon
         ylabel = col + " Score"
+
+    plt.figure(figsize=(10, 8))
     
-    size_map = {algo: 6.0 if algo == 'TSP_gurobi' or algo == 'TSP_LIN_TimeLim=30' else 1.2 for algo in df['algo'].cat.categories}
-    print(size_map)
-    plt.figure(figsize=(12, 12))
-    sns.lineplot(data=df, x="n", y=col, hue="algo", errorbar=None)
+    # Track algorithm styles manually using Matplotlib directly
+    # This guarantees Seaborn will never alter hue assignments or data grouping
+    palette = sns.color_palette("tab10", n_colors=df['algo'].nunique())
+    
+    for i, (algo, group) in enumerate(df.groupby('algo', observed=True)):
+        linewidth = 4.0 if algo in ['TSP_gurobi', 'TSP_LIN_TimeLim=30'] else 1.5
+        plt.plot(
+            group['n'], 
+            group[col], 
+            label=algo, 
+            linewidth=linewidth, 
+            color=palette[i]
+        )
 
     plt.xlabel("Size")
     plt.ylabel(ylabel)
     plt.title(title)
+    plt.legend(title="Algorithm", loc='upper left')
     plt.grid(True, linestyle="--", alpha=0.6)
     plt.savefig(f"./Results/{title.replace(' ', '_')}.png", bbox_inches='tight')
     plt.show()
-
 data = df
 
 size_vs_col(
