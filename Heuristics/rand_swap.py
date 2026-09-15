@@ -36,7 +36,7 @@ def rand_block_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, n
 
             score_new = metric(A[new_rows][:, cols])
             p = random.random()
-            if score_new > score_curr or p < temp:
+            if score_new < score_curr or p < temp:
                 score_curr = score_new
                 rows = new_rows
                 up = True
@@ -71,7 +71,7 @@ def rand_block_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, n
 
             score_new = metric(A[rows][:, new_cols])
             p = random.random()
-            if score_new > score_curr or p < temp:
+            if score_new < score_curr or p < temp:
                 score_curr = score_new
                 cols = new_cols
                 up = True
@@ -104,7 +104,7 @@ def randomly_mirror(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, nu
 
             score_new = metric(A[new_rows][:, cols])
             p = random.random()
-            if score_new > score_curr or p < temp:
+            if score_new < score_curr or p < temp:
                 score_curr = score_new
                 rows = new_rows
                 up = True
@@ -128,7 +128,7 @@ def randomly_mirror(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, nu
 
             score_new = metric(A[rows][:, new_cols])
             p = random.random()
-            if score_new > score_curr or p < temp:
+            if score_new < score_curr or p < temp:
                 score_curr = score_new
                 cols = new_cols
                 up = True
@@ -160,7 +160,7 @@ def rand_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, num_of_
             rows[b] = t
             score_new = metric(A[rows][:, cols])
             p = random.random()
-            if score_new > score_curr or p < temp:
+            if score_new < score_curr or p < temp:
                 score_curr = score_new
                 up = True
                 break
@@ -187,7 +187,7 @@ def rand_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, num_of_
             cols[b] = t
             score_new = metric(A[rows][:, cols])
             p = random.random()
-            if score_new > score_curr or p < temp:
+            if score_new < score_curr or p < temp:
                 score_curr = score_new
                 up = True
                 break
@@ -203,7 +203,7 @@ def rand_swaps(A, metric, tries=30, temperature=0.1, cooling_rate=0.005, num_of_
     return A[rows][:, cols]
 
 class RandomSorter:
-    def __init__(self, func, nm, metric, tries=500, temperature=0.0, cooling_rate=0.000, num_of_iterations=50000): # 500 tries should mean we try 10% of all options
+    def __init__(self, func, nm, metric, tries=500, temperature=0.0, cooling_rate=0.000, num_of_iterations=1): # 1000 tries should mean we try >10% of all options
         self.func = func
         self.nm = '_'.join([nm, 'Tries='+str(tries), 'Temp='+str(temperature),'Cooling='+str(cooling_rate), 'NumIter='+str(num_of_iterations)])
         self.metric = metric

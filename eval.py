@@ -213,16 +213,21 @@ def old_code():
 
 if __name__ == "__main__":
     datasets = [
-        ('GDS_rand', 'Data/GDS_Random'),
+        ('Random', 'Data/Random'),
         ]
     dataset_nm = datasets[0][0]
     dataset = datasets[0][1]
 
     bae = BAE()
 
-    opt = TSP_LIN()
+    rnd_swp = RandomSorter(rand_swaps, "Random_swaps", moore_stress4)
 
-    veriga = Chain([bae, opt])
+    rnd_mir = RandomSorter(randomly_mirror, "Mirror", moore_stress4)
+    
+    rnd_blk = RandomSorter(rand_block_swaps, "Block_Swaps", moore_stress4)
+
+    veriga = rnd_swp
+
     save(
         run(
         algo = veriga,
@@ -230,7 +235,30 @@ if __name__ == "__main__":
         dataset_nm=dataset_nm,
         metric='NS',
         output_path='results.parquet',
-        only_small=True
+        only_small=False
+        )
     )
-)
-    print("wow")
+
+    veriga = rnd_mir
+    save(
+        run(
+        algo = veriga,
+        in_dir = dataset,
+        dataset_nm=dataset_nm,
+        metric='NS',
+        output_path='results.parquet',
+        only_small=False
+        )
+    )
+
+    veriga = rnd_blk
+    save(
+        run(
+        algo = veriga,
+        in_dir = dataset,
+        dataset_nm=dataset_nm,
+        metric='NS',
+        output_path='results.parquet',
+        only_small=False
+        )
+    )

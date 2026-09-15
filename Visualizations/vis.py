@@ -8,6 +8,9 @@ def read(path='./results.parquet')->pd.DataFrame:
     df['n'] = df[['row_size', 'col_size']].values.min(1)
     df = df[df['algo'] != 'BAE->Hclust']
     #df['algo'] = df['algo'].astype("category")
+    df = df[df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
+    df = df[df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
+    df = df[df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
 
     return df
 
@@ -86,7 +89,7 @@ def size_vs_col(df, col='time', only_small=False, title_addon=''):
     
     # Track algorithm styles manually using Matplotlib directly
     # This guarantees Seaborn will never alter hue assignments or data grouping
-    palette = sns.color_palette("tab10", n_colors=df['algo'].nunique())
+    palette = sns.color_palette(None, n_colors=df['algo'].nunique())
     
     for i, (algo, group) in enumerate(df.groupby('algo', observed=True)):
         linewidth = 4.0 if algo in ['TSP_gurobi', 'TSP_LIN_TimeLim=30'] else 1.5
@@ -103,11 +106,11 @@ def size_vs_col(df, col='time', only_small=False, title_addon=''):
     plt.title(title)
     plt.legend(title="Algorithm", loc='upper left')
     plt.grid(True, linestyle="--", alpha=0.6)
-    plt.savefig(f"./Results/{title.replace(' ', '_')}.png", bbox_inches='tight')
+    #plt.savefig(f"./Results/{title.replace(' ', '_')}.png", bbox_inches='tight')
     plt.show()
 data = df
 
-"""size_vs_col(
+size_vs_col(
     df[df['algo'] != 'BAE->Hclust'][df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'],
     col='NS4',
     )
@@ -143,4 +146,4 @@ size_vs_col(
     df[df['algo'] != 'BAE->Hclust'][df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'],
     col='time',
     title_addon=' on GDS_rand subset'
-    )"""
+    )
