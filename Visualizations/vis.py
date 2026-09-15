@@ -11,8 +11,25 @@ def read(path='./results.parquet')->pd.DataFrame:
 
     return df
 
-def tm_vs_score(df, title='', only_small=True):
+def tm_vs_score(df, title='', only_small=False, only_common=True):
     df['algo'] = df['algo'].astype("category")
+    df = df.copy()
+    if only_common:
+        df['id'] = df['dir'] + df['file_name']
+        # 1. Get the total number of unique algorithms in your dataset
+        num_algos = df['algo'].nunique()
+
+        # 2. Filter groups that contain all unique algorithms
+        df = df.groupby('id').filter(
+            lambda group: group['algo'].nunique() == num_algos
+        )
+        print(max(df['row_size']))
+
+        fdf = df.groupby('id').filter(
+            lambda group: round(min(group[group['algo'] == 'TSP_gurobi']['NS4']), 2) != round(min(group[group['algo'] == 'BAE->TSP_gurobi']['NS4']), 2)
+        )
+
+        print(fdf[['id', 'algo', 'NS4']])
     if only_small:
         size_lim = df[df['algo'] == 'TSP_gurobi']['size'].max()
         df = df[df['size']<=size_lim]
@@ -38,14 +55,14 @@ def tm_vs_score(df, title='', only_small=True):
     plt.ylabel("Mean NS4 Score")
     plt.title('Time vs Score' + title)
     adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='gray', lw=0.5))
-    plt.savefig(f"./Results/{('Time vs Score' + title).replace(' ', '_')}.png", bbox_inches='tight')
+    #plt.savefig(f"./Results/{('Time vs Score' + title).replace(' ', '_')}.png", bbox_inches='tight')
 
     plt.show()
 
 df = read()
-#tm_vs_score(df)
-#tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset')
-#tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset')
+tm_vs_score(df, title=', only common')
+tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset, only common')
+tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset, only common')
 #tm_vs_score(df[df['dataset']=='SparseMatrixSuite'], title='SparseMatrixSuite')
 
 def size_vs_col(df, col='time', only_small=False, title_addon=''):
@@ -90,7 +107,7 @@ def size_vs_col(df, col='time', only_small=False, title_addon=''):
     plt.show()
 data = df
 
-size_vs_col(
+"""size_vs_col(
     df[df['algo'] != 'BAE->Hclust'][df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'],
     col='NS4',
     )
@@ -126,4 +143,4 @@ size_vs_col(
     df[df['algo'] != 'BAE->Hclust'][df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'],
     col='time',
     title_addon=' on GDS_rand subset'
-    )
+    )"""
