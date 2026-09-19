@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from numpy.linalg import det
 
 import os
 import random
@@ -19,8 +20,8 @@ from Heuristics.tsp_heur import TSP_LK
 
 from chain import Chain
 
-def get_matrix(filepath):
-    df = pd.read_csv(filepath, delimiter='\t')
+def get_matrix(filepath, header=0):
+    df = pd.read_csv(filepath, delimiter='\t', header=header)
     df = df.drop(columns=['ID_REF', 'IDENTIFIER'], errors='ignore')
 
     df = df.select_dtypes(include=[np.number])
@@ -34,11 +35,24 @@ def get_matrix(filepath):
     return A
 
 def ev(H, algo):
-    sorted = algo(H)
-    if sorted is None:
+    is_square = H.shape[0] == H.shape[1]
+    if is_square:
+        detH = int(abs(det(H.copy()))) # i round it to an int, so we can ignore minor float errors (this is here only to make sure we don't seriously destroy the matrix)
+    ordered = algo(H)
+    if ordered is None:
         return None
-    res = full_eval(sorted)
+    print(ordered.shape)
 
+    if is_square:
+        if int(abs(det(ordered.copy()))) != detH: # This checks that the sorters don't mess up the heatmap(row and column permutations dont affect the absolute value of the determinante)
+            print(detH)
+            print(abs(det(ordered.copy())))
+            print(H)
+            print(ordered)
+            raise ValueError("Returned matrix determinant doesn't match the initial determinant!")
+
+    res = full_eval(ordered)
+    
     return res
 
 def get_size(filepath):
@@ -49,7 +63,7 @@ def get_size(filepath):
     return A.shape
 
 
-def get_metadata(filenm, dirpath, algo_nm, tm, dataset, metric, n=None, m=None):
+def get_metadata(filenm, dirpath, algo_nm, tm, dataset, metric, n=None, m=None, is_opt=False):
     if n is None or m is None:
         (n,m) = get_size(os.path.join(dirpath, filenm))
     row = {
@@ -62,6 +76,7 @@ def get_metadata(filenm, dirpath, algo_nm, tm, dataset, metric, n=None, m=None):
         'col_size': m,
         'dataset' : dataset,
         'optimizing': metric,
+        'opt': is_opt
     }
 
     return row
@@ -125,7 +140,7 @@ def run_on_tar_gz(algo, in_dir, dataset_nm, metric, output_path='results.parquet
     output_path, engine="fastparquet", append=os.path.exists(output_path), index=False
         )
 
-def run(algo, in_dir, dataset_nm, metric, output_path='results.parquet', only_small=True):
+def run(algo, in_dir, dataset_nm, metric, output_path='results.parquet', only_small=True, header=0):
     print("starting ", algo.get_name())
     if only_small:
         in_dir = os.path.join(in_dir, 'Small')
@@ -135,7 +150,7 @@ def run(algo, in_dir, dataset_nm, metric, output_path='results.parquet', only_sm
     for root, dirs, files in os.walk(in_dir):
         for f in files:
             if '.tsv' in f:
-                H = get_matrix(os.path.join(root, f))
+                H = get_matrix(os.path.join(root, f), header=header)
                 if H is None:
                     continue
 
@@ -143,6 +158,7 @@ def run(algo, in_dir, dataset_nm, metric, output_path='results.parquet', only_sm
                 res = ev(H, algo)
                 if res is None:
                     continue
+
                 end_time = time.perf_counter()
                 tm = end_time - start_time
 
@@ -152,9 +168,7 @@ def run(algo, in_dir, dataset_nm, metric, output_path='results.parquet', only_sm
     df = pd.DataFrame(df)
 
     return df
-    df.to_parquet(
-    output_path, engine="fastparquet", append=os.path.exists(output_path), index=False
-        )
+
 
 def save(df, output_path='results.parquet'):
     df.to_parquet(
@@ -213,52 +227,22 @@ def old_code():
 
 if __name__ == "__main__":
     datasets = [
-        ('Random', 'Data/Random'),
+        ('Random', 'Data/Random', None),
+        #('GDS_rand', 'Data/GDS_Random', 0),
         ]
     dataset_nm = datasets[0][0]
     dataset = datasets[0][1]
-
-    bae = BAE()
-
-    rnd_swp = RandomSorter(rand_swaps, "Random_swaps", moore_stress4)
-
-    rnd_mir = RandomSorter(randomly_mirror, "Mirror", moore_stress4)
-    
-    rnd_blk = RandomSorter(rand_block_swaps, "Block_Swaps", moore_stress4)
-
-    veriga = rnd_swp
+    header = datasets[0][2]
+    a = BAE()
 
     save(
         run(
-        algo = veriga,
+        algo = a,
         in_dir = dataset,
         dataset_nm=dataset_nm,
         metric='NS',
         output_path='results.parquet',
-        only_small=False
-        )
-    )
-
-    veriga = rnd_mir
-    save(
-        run(
-        algo = veriga,
-        in_dir = dataset,
-        dataset_nm=dataset_nm,
-        metric='NS',
-        output_path='results.parquet',
-        only_small=False
-        )
-    )
-
-    veriga = rnd_blk
-    save(
-        run(
-        algo = veriga,
-        in_dir = dataset,
-        dataset_nm=dataset_nm,
-        metric='NS',
-        output_path='results.parquet',
-        only_small=False
+        only_small=True,
+        header= header
         )
     )
