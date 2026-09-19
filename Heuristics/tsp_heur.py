@@ -37,4 +37,4 @@ class TSP_LK:
     def __call__(self, H, metric=None, *args, **kwds):
         if metric is not None:
             self.metric = metric
-        return tsp_lk(H, metric=self.metric, runs=self.runs)
+        return tsp_lk(H, metric=self.metric, runs=self.runs), False

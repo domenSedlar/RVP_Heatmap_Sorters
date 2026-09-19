@@ -296,7 +296,7 @@ class TSP_LIN:
     def __call__(self, H, metric=None, *args, **kwds):
         if metric is not None:
             self.metric = metric
-        return tsp_reorder_matrix_opt(H, 0,0, metric=self.metric, ret_res=False, time_limit_seconds=self.time_lim)
+        return tsp_reorder_matrix_opt(H, 0,0, metric=self.metric, ret_res=False, time_limit_seconds=self.time_lim), True
 
 
 if __name__ == "__main__":

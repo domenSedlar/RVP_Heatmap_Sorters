@@ -11,9 +11,9 @@ def read(path='./results.parquet')->pd.DataFrame:
     df = df[df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
     df = df[df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
     df = df[df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
-    df = df[~((df['algo'] == 'TSP_gurobi') & (df['opt'] == False))]
+    #df = df[~((df['algo'] == 'TSP_gurobi') & (df['opt'] == False))]
     #df = df[~((df['algo'] == 'TSP_gurobi') & (df['n'] > 60))]
-    df = df[df['NS4'] < 1e30] # This removes mistakes
+    #df = df[df['NS4'] < 1e30] # This removes mistakes
 
     return df
 

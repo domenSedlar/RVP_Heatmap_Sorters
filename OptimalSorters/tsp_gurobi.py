@@ -113,13 +113,13 @@ def solve_tsp(r):
         cb = TSPCallback(nodes, x)
         m.optimize(cb)
         if m.SolCount < 1:
-            return None
+            return None, False
         # Extract the solution as a tour
         edges = [(i, j) for (i, j), v in x.items() if v.X > 0.5]
         tour = shortest_subtour(edges)
         assert set(tour) == set(nodes)
 
-        return tour
+        return tour, m.Status == GRB.Status.OPTIMAL
 
 
 def rm_dummy(tour):
@@ -149,7 +149,9 @@ class TSP_gurobi:
             raise NotImplementedError
         if r.shape[0] > 61 or c.shape[0] > 61:
             return None
-        rows = rm_dummy(solve_tsp(r))
-        cols = rm_dummy(solve_tsp(c))
-    
-        return H[rows][:, cols]
+        rows, opt1 = solve_tsp(r)
+        cols, opt2 = solve_tsp(c)
+
+        rows = rm_dummy(rows)
+        cols = rm_dummy(cols)
+        return H[rows][:, cols], opt1 and opt2

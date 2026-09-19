@@ -48,4 +48,4 @@ class Hclust:
     def __call__(self, H, metric=None, *args, **kwds):
         if metric is not None:
             self.metric = metric
-        return hclust_with_olo(H, metric=self.metric, method=self.method)
+        return hclust_with_olo(H, metric=self.metric, method=self.method), False

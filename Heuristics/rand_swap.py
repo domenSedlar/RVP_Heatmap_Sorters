@@ -219,4 +219,4 @@ class RandomSorter:
         if metric is not None:
             raise NotImplementedError
 
-        return self.func(H, metric=self.metric, tries=self.tries, temperature=self.temperature, cooling_rate=self.cooling_rate, num_of_iterations=self.num_of_iter)
+        return self.func(H, metric=self.metric, tries=self.tries, temperature=self.temperature, cooling_rate=self.cooling_rate, num_of_iterations=self.num_of_iter), False

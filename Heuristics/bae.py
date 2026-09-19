@@ -57,4 +57,4 @@ class BAE:
         return 'BAE'
     
     def __call__(self, H, metric=Metric.NS, *args, **kwds):
-        return bae(H, metric=metric)
+        return bae(H, metric=metric), False

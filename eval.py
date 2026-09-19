@@ -38,7 +38,7 @@ def ev(H, algo):
     is_square = H.shape[0] == H.shape[1]
     if is_square:
         detH = int(abs(det(H.copy()))) # i round it to an int, so we can ignore minor float errors (this is here only to make sure we don't seriously destroy the matrix)
-    ordered = algo(H)
+    ordered, is_opt = algo(H)
     if ordered is None:
         return None
     print(ordered.shape)
@@ -53,7 +53,7 @@ def ev(H, algo):
 
     res = full_eval(ordered)
     
-    return res
+    return res, is_opt
 
 def get_size(filepath):
     df = pd.read_csv(filepath, delimiter='\t')
@@ -125,13 +125,13 @@ def run_on_tar_gz(algo, in_dir, dataset_nm, metric, output_path='results.parquet
                 H = open_tar_mem(f)
 
                 start_time = time.perf_counter()
-                res = ev(H, algo)
+                res, is_opt = ev(H, algo)
                 if res is None:
                     continue
                 end_time = time.perf_counter()
                 tm = end_time - start_time
 
-                row = get_metadata(member.name, tar_pth, algo_nm, tm, dataset_nm, metric, tr.loc['height'], tr.loc['width']) | res
+                row = get_metadata(member.name, tar_pth, algo_nm, tm, dataset_nm, metric, tr.loc['height'], tr.loc['width'], is_opt) | res
                 df.append(row)
 
     df = pd.DataFrame(df)
@@ -155,14 +155,14 @@ def run(algo, in_dir, dataset_nm, metric, output_path='results.parquet', only_sm
                     continue
 
                 start_time = time.perf_counter()
-                res = ev(H, algo)
+                res, is_opt = ev(H, algo)
                 if res is None:
                     continue
 
                 end_time = time.perf_counter()
                 tm = end_time - start_time
 
-                row = get_metadata(f, root, algo_nm, tm, dataset_nm, metric) | res
+                row = get_metadata(f, root, algo_nm, tm, dataset_nm, metric, is_opt=is_opt) | res
                 df.append(row)
 
     df = pd.DataFrame(df)
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     dataset_nm = datasets[0][0]
     dataset = datasets[0][1]
     header = datasets[0][2]
-    a = BAE()
+    a = TSP_gurobi()
 
     save(
         run(
