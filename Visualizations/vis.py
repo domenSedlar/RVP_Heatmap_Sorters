@@ -11,10 +11,13 @@ def read(path='./results.parquet')->pd.DataFrame:
     df = df[df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
     df = df[df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
     df = df[df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
+    df = df[~((df['algo'] == 'TSP_gurobi') & (df['opt'] == False))]
+    #df = df[~((df['algo'] == 'TSP_gurobi') & (df['n'] > 60))]
+    df = df[df['NS4'] < 1e30] # This removes mistakes
 
     return df
 
-def tm_vs_score(df, title='', only_small=False, only_common=True):
+def tm_vs_score(df, title='', only_small=False, only_common=False):
     df['algo'] = df['algo'].astype("category")
     df = df.copy()
     if only_common:
@@ -111,25 +114,25 @@ def size_vs_col(df, col='time', only_small=False, title_addon=''):
 data = df
 
 size_vs_col(
-    df[df['algo'] != 'BAE->Hclust'][df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'],
+    df,
     col='NS4',
     )
 
 size_vs_col(
-    df[df['algo'] != 'BAE->Hclust'][df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'],
+    df,
     col='time'
     )
 
 df = data[data['dataset']=='Random']
 
 size_vs_col(
-    df[df['algo'] != 'BAE->Hclust'][df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'],
+    df,
     col='NS4',
     title_addon=' on Random subset'
     )
 
 size_vs_col(
-    df[df['algo'] != 'BAE->Hclust'][df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'],
+    df,
     col='time',
     title_addon=' on Random subset'
     )
