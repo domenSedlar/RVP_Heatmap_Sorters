@@ -1,3 +1,7 @@
+import os
+
+os.environ["GRB_LICENSE_FILE"] = "E:\ProjectsSSD\School\RVP\RVP_Heatmap_Sorters\Licences\gurobi.lic"
+
 import sys
 import logging
 import math
@@ -96,6 +100,7 @@ def solve_tsp(r):
     with gp.Env() as env, gp.Model(env=env) as m:
         # Create variables, and add symmetric keys to the resulting dictionary
         # 'x', such that (i, j) and (j, i) refer to the same variable.
+        env.setParam('TimeLimit', 30)
         x = m.addVars(distances.keys(), obj=distances, vtype=GRB.BINARY, name="e")
         x.update({(j, i): v for (i, j), v in x.items()})
 
@@ -107,7 +112,8 @@ def solve_tsp(r):
         m.Params.LazyConstraints = 1
         cb = TSPCallback(nodes, x)
         m.optimize(cb)
-
+        if m.SolCount < 1:
+            return None
         # Extract the solution as a tour
         edges = [(i, j) for (i, j), v in x.items() if v.X > 0.5]
         tour = shortest_subtour(edges)
@@ -117,6 +123,8 @@ def solve_tsp(r):
 
 
 def rm_dummy(tour):
+    if tour is None:
+        return None
     dummy = max(tour)
     order = []
     for i, v in enumerate(tour):
