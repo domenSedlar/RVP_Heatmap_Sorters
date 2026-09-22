@@ -100,7 +100,7 @@ def solve_tsp(r):
     with gp.Env() as env, gp.Model(env=env) as m:
         # Create variables, and add symmetric keys to the resulting dictionary
         # 'x', such that (i, j) and (j, i) refer to the same variable.
-        env.setParam('TimeLimit', 30)
+        m.setParam('TimeLimit', 30)
         x = m.addVars(distances.keys(), obj=distances, vtype=GRB.BINARY, name="e")
         x.update({(j, i): v for (i, j), v in x.items()})
 
@@ -147,8 +147,7 @@ class TSP_gurobi:
             r, c = create_matrices_ns(H)
         else:
             raise NotImplementedError
-        if r.shape[0] > 61 or c.shape[0] > 61:
-            return None
+
         rows, opt1 = solve_tsp(r)
         cols, opt2 = solve_tsp(c)
 
