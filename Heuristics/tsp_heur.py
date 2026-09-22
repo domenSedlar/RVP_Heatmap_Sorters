@@ -1,8 +1,21 @@
 import elkai
 from MyUtils.distance_matrix import create_matrices_ns, create_matrices_me
 from RVP_Metrics.metrics import Metric
-from MyUtils.helpers import extract_tour_order
 import numpy as np
+
+
+def rm_dummy(tour):
+    if tour is None:
+        return None
+    dummy = max(tour)
+    order = []
+    for i, v in enumerate(tour):
+        if v == dummy:
+            order += tour[(i+1):]
+            order += tour[:i]
+
+    return order
+
 
 def tsp_lk(H, metric : Metric = Metric.NS, runs=10):
     if metric == Metric.NS:
@@ -17,12 +30,10 @@ def tsp_lk(H, metric : Metric = Metric.NS, runs=10):
     c_rows = elkai.DistanceMatrix(c_rows)
     c_cols = elkai.DistanceMatrix(c_cols)
 
-    rows = c_rows.solve_tsp()
-    cols = c_cols.solve_tsp()
-
-    rows = extract_tour_order(rows, n)
-    cols = extract_tour_order(cols, m)
-    print(rows, cols)
+    rows = c_rows.solve_tsp()[1:]
+    cols = c_cols.solve_tsp()[1:]
+    rows = rm_dummy(rows)
+    cols = rm_dummy(cols)
 
     return H[rows][:, cols]
 
