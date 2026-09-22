@@ -24,10 +24,11 @@ def tsp_opt_wrapper(H, metric):
     return row_order, col_order
 
 def chain(ls, H):
+    is_opt = False
     for f in ls:
-        H = f(H)
+        H, is_opt = f(H)
 
-    return H
+    return H, is_opt
 
 
 class Chain:
@@ -39,4 +40,4 @@ class Chain:
         return '->'.join([a.get_name() for a in self.algos])
     
     def __call__(self, H, metric=Metric.NS, *args, **kwds):
-        return chain(self.algos, H)
+        return chain(self.algos, H) 
