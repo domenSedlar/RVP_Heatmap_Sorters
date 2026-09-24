@@ -35,20 +35,19 @@ def get_matrix(filepath, header=0):
     return A
 
 def ev(H, algo):
-    is_square = H.shape[0] == H.shape[1]
+    is_square = H.shape[0] == H.shape[1] and H.shape[0] < 31
     if is_square:
         detH = int(abs(det(H.copy()))) # i round it to an int, so we can ignore minor float errors (this is here only to make sure we don't seriously destroy the matrix)
     ordered, is_opt = algo(H)
     if ordered is None:
-        return None
-    print(ordered.shape)
+        return None, False
 
     if is_square:
         if int(abs(det(ordered.copy()))) != detH: # This checks that the sorters don't mess up the heatmap(row and column permutations dont affect the absolute value of the determinante)
             print(detH)
             print(abs(det(ordered.copy())))
-            print(H)
-            print(ordered)
+            #print(H)
+            #print(ordered)
             raise ValueError("Returned matrix determinant doesn't match the initial determinant!")
 
     res = full_eval(ordered)
@@ -227,22 +226,51 @@ def old_code():
 
 if __name__ == "__main__":
     datasets = [
-        ('Random', 'Data/Random', None),
-        #('GDS_rand', 'Data/GDS_Random', 0),
+        #('Random', 'Data/Random', None),
+        ('GDS_rand', 'Data/GDS_Random', 0),
         ]
+
+    rand_chain_lambda = lambda algo1, algo2, nm: Chain([algo1, RandomSorter(algo2, nm, moore_stress4)])
+    bae_tsp = Chain([BAE(), TSP_LIN()])
+    hclust_tsp = Chain([Hclust(), TSP_LIN()])
+    bae_tsp = Chain([BAE(), TSP_LIN()])
+    hclust_tsp = Chain([Hclust(), TSP_LIN()])
+    algos = [
+        #(BAE(), False),
+        #(Hclust(), False),
+        #(RandomSorter(rand_block_swaps, "Rand_Block_Swaps", moore_stress4), False),
+        #(RandomSorter(randomly_mirror,"Rand_Mirror", moore_stress4), False),
+        #(RandomSorter(rand_swaps, "Rand_Swaps", moore_stress4), False),
+        #(rand_chain_lambda(Hclust(), rand_swaps, "Rand_Swaps"), False),
+        #(rand_chain_lambda(Hclust(), randomly_mirror, "Rand_Mirror"), False),
+        #(rand_chain_lambda(Hclust(), rand_block_swaps,"Rand_Block_Swaps"), False),
+        #(rand_chain_lambda(BAE(), rand_swaps, "Rand_Swaps"), False),
+        #(rand_chain_lambda(BAE(), randomly_mirror, "Rand_Mirror"), False),
+        #(rand_chain_lambda(BAE(), rand_block_swaps, "Rand_Block_Swaps"), False),
+        #(Hclust(), False),
+        #(TSP_LK(), False), # TODO make sure this one is correct
+
+        #(TSP_gurobi(), False),
+        #(TSP_LIN(), True),
+        #(Chain([BAE(), TSP_gurobi()]), False),
+        #(Chain([Hclust(), TSP_gurobi()]), False),
+        #(Chain([BAE(), TSP_LIN()]), True),
+        #(Chain([Hclust(), TSP_LIN()]), True),
+        (TSP_LK(), False)
+    ]
+    
     dataset_nm = datasets[0][0]
     dataset = datasets[0][1]
     header = datasets[0][2]
-    a = TSP_gurobi()
-
-    save(
-        run(
-        algo = a,
-        in_dir = dataset,
-        dataset_nm=dataset_nm,
-        metric='NS',
-        output_path='results.parquet',
-        only_small=True,
-        header= header
+    for (a, only_small) in algos:
+        save(
+            run(
+            algo = a,
+            in_dir = dataset,
+            dataset_nm=dataset_nm,
+            metric='NS',
+            only_small=only_small,
+            header= header
+            ),
+            output_path='Results/res__'+dataset_nm+'__'+(a.get_name()).replace('>','') + '.parquet'
         )
-    )
