@@ -2,8 +2,9 @@ from matplotlib import pyplot as plt
 import pandas as pd
 from adjustText import adjust_text
 import seaborn as sns
+import re
 
-def read(path='./results.parquet')->pd.DataFrame:
+def read(path='./Results/res.parquet')->pd.DataFrame:
     df = pd.read_parquet(path)
     df['n'] = df[['row_size', 'col_size']].values.min(1)
     df = df[df['algo'] != 'BAE->Hclust']
@@ -17,9 +18,13 @@ def read(path='./results.parquet')->pd.DataFrame:
 
     return df
 
-def tm_vs_score(df, title='', only_small=False, only_common=False):
+def tm_vs_score(df, title='', only_small=False, only_common=False, out_dir='./Results/imgs', s=111):
+    s = 111
+    df = df.copy()
+    #ax = plt.subplot(s)
     df['algo'] = df['algo'].astype("category")
     df = df.copy()
+
     if only_common:
         df['id'] = df['dir'] + df['file_name']
         # 1. Get the total number of unique algorithms in your dataset
@@ -31,14 +36,14 @@ def tm_vs_score(df, title='', only_small=False, only_common=False):
         )
         print(max(df['row_size']))
 
-        fdf = df.groupby('id').filter(
-            lambda group: round(min(group[group['algo'] == 'TSP_gurobi']['NS4']), 2) != round(min(group[group['algo'] == 'BAE->TSP_gurobi']['NS4']), 2)
-        )
+        title = title + 'only common'
 
-        print(fdf[['id', 'algo', 'NS4']])
     if only_small:
         size_lim = df[df['algo'] == 'TSP_gurobi']['size'].max()
         df = df[df['size']<=size_lim]
+
+        title = title + f"small matrices (< {size_lim})"
+
     points_x = []
     points_y = []
     labels = []
@@ -55,23 +60,31 @@ def tm_vs_score(df, title='', only_small=False, only_common=False):
     
     texts = []
     for x, y, s in zip(points_x, points_y, labels):
+        s = s[:25]
         texts.append(plt.text(x, y, s))
     ax.scatter(points_x, points_y)
     plt.xlabel("Mean Time")
     plt.ylabel("Mean NS4 Score")
     plt.title('Time vs Score' + title)
-    adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='gray', lw=0.5))
-    #plt.savefig(f"./Results/{('Time vs Score' + title).replace(' ', '_')}.png", bbox_inches='tight')
+    adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='gray', lw=1), force_text=(0.1,0.3))
+    #plt.savefig(f"{out_dir}{('Time vs Score' + title).replace(' ', '_')}.png", bbox_inches='tight')
 
     plt.show()
 
 df = read()
-tm_vs_score(df, title=', only common')
-tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset, only common')
-tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset, only common')
-#tm_vs_score(df[df['dataset']=='SparseMatrixSuite'], title='SparseMatrixSuite')
+tm_vs_score(df, title='', s=321)
+#tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset', s=322)
+#tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset', s=323)
 
-def size_vs_col(df, col='time', only_small=False, title_addon=''):
+#tm_vs_score(df, title='', only_common=True, s=324)
+#tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset', only_common=True, s=325)
+#tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset', only_common=True, s=326)
+#tm_vs_score(df[df['dataset']=='SparseMatrixSuite'], title='SparseMatrixSuite')
+#plt.show()
+
+def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Results/imgs', s=111):
+    #s=111
+    #plt.subplot(s)
     df = df.copy()
     
     if only_small:
@@ -88,14 +101,14 @@ def size_vs_col(df, col='time', only_small=False, title_addon=''):
         title = "Score vs. Input size" + title_addon
         ylabel = col + " Score"
 
-    plt.figure(figsize=(10, 8))
+#    plt.figure(figsize=(10, 8))
     
     # Track algorithm styles manually using Matplotlib directly
     # This guarantees Seaborn will never alter hue assignments or data grouping
-    palette = sns.color_palette(None, n_colors=df['algo'].nunique())
+    palette = sns.color_palette('tab20', n_colors=df['algo'].nunique())
     
     for i, (algo, group) in enumerate(df.groupby('algo', observed=True)):
-        linewidth = 4.0 if algo in ['TSP_gurobi', 'TSP_LIN_TimeLim=30'] else 1.5
+        linewidth = 3.0 if algo in ['TSP_gurobi', 'TSP_LIN_TimeLim=30'] else 2
         plt.plot(
             group['n'], 
             group[col], 
@@ -111,42 +124,62 @@ def size_vs_col(df, col='time', only_small=False, title_addon=''):
     plt.grid(True, linestyle="--", alpha=0.6)
     #plt.savefig(f"./Results/{title.replace(' ', '_')}.png", bbox_inches='tight')
     plt.show()
+
+
+good_algos = [
+    "gurobi",
+    "Hclust",
+    "BAE->",
+    'TSP_LK',
+    "TSP_LIN"
+]
+pattern = "|".join(map(re.escape, good_algos))
+df = df[df["algo"].str.contains(pattern, na=False)]
+
 data = df
 
 size_vs_col(
     df,
     col='NS4',
-    )
-
-size_vs_col(
-    df,
-    col='time'
-    )
-
-df = data[data['dataset']=='Random']
-
-size_vs_col(
-    df,
-    col='NS4',
-    title_addon=' on Random subset'
+    s=321,
     )
 
 size_vs_col(
     df,
     col='time',
-    title_addon=' on Random subset'
+    s=322
+    )
+
+"""df = data[data['dataset']=='Random']
+
+size_vs_col(
+    df,
+    col='NS4',
+    title_addon=' on Random subset',
+    s=323,
+    )
+
+size_vs_col(
+    df,
+    col='time',
+    title_addon=' on Random subset',
+    s=324,
     )
 
 df = data[data['dataset']=='GDS_rand']
 
 size_vs_col(
-    df[df['algo'] != 'BAE->Hclust'][df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'],
+    df,
     col='NS4',
-    title_addon=' on GDS_rand subset'
+    title_addon=' on GDS_rand subset',
+    s=325,
     )
 
 size_vs_col(
-    df[df['algo'] != 'BAE->Hclust'][df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'][df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000'],
+    df,
     col='time',
-    title_addon=' on GDS_rand subset'
+    title_addon=' on GDS_rand subset',
+    s=326
     )
+"""
+#plt.show()
