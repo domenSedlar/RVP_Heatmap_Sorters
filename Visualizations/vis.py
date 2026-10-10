@@ -9,17 +9,20 @@ def read(path='./Results/res.parquet')->pd.DataFrame:
     df['n'] = df[['row_size', 'col_size']].values.min(1)
     df['n'] = df['size']
     df = df[df['algo'] != 'BAE->Hclust']
+    df = df[df['dataset'] != 'GDSLarge']
+    df = df[df['dataset'] != 'RandomLarge']
+        
     #df['algo'] = df['algo'].astype("category")
-    df = df[df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
-    df = df[df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
-    df = df[df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
+    #df = df[df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
+    #df = df[df['algo'] != 'Mirror_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
+    #df = df[df['algo'] != 'Block_Swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
     #df = df[~((df['algo'] == 'TSP_gurobi') & (df['opt'] == False))]
     #df = df[~((df['algo'] == 'TSP_gurobi') & (df['n'] > 60))]
     #df = df[df['NS4'] < 1e30] # This removes mistakes
 
     return df
 
-def tm_vs_score(df, title='', only_small=False, only_common=False, out_dir='./Results/imgs', s=111):
+def tm_vs_score(df, title='', only_small=False, only_common=False, out_dir='./Images', s=111):
     s = 111
     df = df.copy()
     #ax = plt.subplot(s)
@@ -67,24 +70,27 @@ def tm_vs_score(df, title='', only_small=False, only_common=False, out_dir='./Re
     plt.xlabel("Mean Time")
     plt.ylabel("Mean NS4 Score")
     plt.title('Time vs Score' + title)
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
     adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='gray', lw=1.5), force_text=(0.1,0.5))
-    #plt.savefig(f"{out_dir}{('Time vs Score' + title).replace(' ', '_')}.png", bbox_inches='tight')
+    plt.savefig(f"{out_dir}/{('Time vs Score' + title).replace(' ', '_')}.png", bbox_inches='tight')
 
-    plt.show()
+    #plt.show()
+    plt.clf()
 
 df = read()
-# tm_vs_score(df, title='', s=321)
-#tm_vs_score(df, title='', only_common=True)
-#tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset', s=322)
-#tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset', s=323)
+tm_vs_score(df, title='', s=321)
+tm_vs_score(df, title='', only_common=True)
+tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset', s=322)
+tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset', s=323)
 
-#tm_vs_score(df, title='', only_common=True, s=324)
-#tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset', only_common=True, s=325)
-#tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset', only_common=True, s=326)
-#tm_vs_score(df[df['dataset']=='SparseMatrixSuite'], title='SparseMatrixSuite')
+tm_vs_score(df, title='', only_common=True, s=324)
+tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset', only_common=True, s=325)
+tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset', only_common=True, s=326)
+tm_vs_score(df[df['dataset']=='SparseMatrixSuite'], title='SparseMatrixSuite')
 #plt.show()
 
-def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Results/imgs', s=111):
+def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Images', s=111):
     #s=111
     #plt.subplot(s)
     df = df.copy()
@@ -131,8 +137,10 @@ def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Res
     plt.title(title)
     plt.legend(title="Algorithm", loc='upper left')
     plt.grid(True, linestyle="--", alpha=0.6)
-    #plt.savefig(f"./Results/{title.replace(' ', '_')}.png", bbox_inches='tight')
-    plt.show()
+    plt.savefig(f"./{out_dir}/{title.replace(' ', '_')}.png", bbox_inches='tight')
+    #plt.show()
+    plt.clf()
+
 
 def size_vs_col2(
     df,
@@ -188,16 +196,18 @@ def size_vs_col2(
             linestyle=linestyle,
             color=palette[i],
         )
-
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
+    
     plt.xlabel("Size")
     plt.ylabel(ylabel)
     plt.title(title)
     plt.legend(title="Algorithm", loc="upper left")
     plt.grid(True, linestyle="--", alpha=0.6)
-    plt.show()
+    #plt.show()
 
 
-"""size_vs_col(
+size_vs_col(
     df,
     col='time'
     )
@@ -211,25 +221,22 @@ size_vs_col(
     df[df['dataset']=='Random'],
     col='NS4',
     title_addon=' on Random dataset'
-)"""
+)
 
 good_algos = [
     "gurobi",
     "Hclust",
     "BAE",
     'TSP_LK',
-    "TSP_LIN"
+    "TSP_LIN",
 ]
+
 pattern = "|".join(map(re.escape, good_algos))
 df = df[df["algo"].str.contains(pattern, na=False)]
 
 data = df
 
-size_vs_col2(
-    df[df['dataset']=='Random'],
-    col='NS4'
-)
-"""size_vs_col(
+size_vs_col(
     data[data['dataset']=='GDS_rand'],
     col='NS4',
     s=321,
@@ -273,5 +280,4 @@ size_vs_col(
     title_addon=' on GDS_rand subset',
     s=326
     )
-"""
 #plt.show()
