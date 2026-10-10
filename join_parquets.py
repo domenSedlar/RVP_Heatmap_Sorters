@@ -15,7 +15,7 @@ else:
     res_df = pd.concat(df_list, ignore_index=True)
 
     # Save the combined DataFrame to res.parquet
-    output_path = data_dir / "res.parquet"
+    output_path =  "./Results/res.parquet"
     res_df.to_parquet(output_path, index=False)
 
     print(f"Successfully merged {len(parquet_files)} files into {output_path}")
