@@ -7,6 +7,7 @@ import re
 def read(path='./Results/res.parquet')->pd.DataFrame:
     df = pd.read_parquet(path)
     df['n'] = df[['row_size', 'col_size']].values.min(1)
+    df['n'] = df['size']
     df = df[df['algo'] != 'BAE->Hclust']
     #df['algo'] = df['algo'].astype("category")
     df = df[df['algo'] != 'Random_swaps_Tries=500_Temp=0.0_Cooling=0.0_NumIter=50000']
@@ -36,7 +37,7 @@ def tm_vs_score(df, title='', only_small=False, only_common=False, out_dir='./Re
         )
         print(max(df['row_size']))
 
-        title = title + 'only common'
+        title = title + ' only common'
 
     if only_small:
         size_lim = df[df['algo'] == 'TSP_gurobi']['size'].max()
@@ -66,13 +67,14 @@ def tm_vs_score(df, title='', only_small=False, only_common=False, out_dir='./Re
     plt.xlabel("Mean Time")
     plt.ylabel("Mean NS4 Score")
     plt.title('Time vs Score' + title)
-    adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='gray', lw=1), force_text=(0.1,0.3))
+    adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='gray', lw=1.5), force_text=(0.1,0.5))
     #plt.savefig(f"{out_dir}{('Time vs Score' + title).replace(' ', '_')}.png", bbox_inches='tight')
 
     plt.show()
 
 df = read()
-tm_vs_score(df, title='', s=321)
+# tm_vs_score(df, title='', s=321)
+#tm_vs_score(df, title='', only_common=True)
 #tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset', s=322)
 #tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset', s=323)
 
@@ -106,14 +108,21 @@ def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Res
     # Track algorithm styles manually using Matplotlib directly
     # This guarantees Seaborn will never alter hue assignments or data grouping
     palette = sns.color_palette('tab20', n_colors=df['algo'].nunique())
-    
+    linestyle_map = {
+    'TSP_gurobi': '--',             # Dashed
+    'TSP_LIN_TimeLim=30': '--',     # Dashed
+    'Hclust': ':',                     # Dotted
+    'BAE': '-.'                  # Dash-dot
+}
     for i, (algo, group) in enumerate(df.groupby('algo', observed=True)):
         linewidth = 3.0 if algo in ['TSP_gurobi', 'TSP_LIN_TimeLim=30'] else 2
+        linestyle = linestyle_map.get(algo, '-')
         plt.plot(
             group['n'], 
             group[col], 
             label=algo, 
-            linewidth=linewidth, 
+            linewidth=linewidth,
+            linestyle=linestyle,
             color=palette[i]
         )
 
@@ -125,11 +134,89 @@ def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Res
     #plt.savefig(f"./Results/{title.replace(' ', '_')}.png", bbox_inches='tight')
     plt.show()
 
+def size_vs_col2(
+    df,
+    col="NS4",
+    only_small=False,
+    title_addon="",
+    out_dir="./Results/imgs",
+    s=111,
+):
+    df = df.copy()
+
+    # Aggregate by algo and n
+    df = df.groupby(["algo", "n"], as_index=False)[col].mean()
+
+    # --- Pivot to subtract the baseline ('TSP_gurobi') ---
+    df_pivot = df.pivot(index="n", columns="algo", values=col)
+
+    if "TSP_gurobi" in df_pivot.columns:
+        # Subtract the baseline from all algorithm columns
+        df_pivot = df_pivot.sub(df_pivot["TSP_gurobi"], axis=0)
+
+    # Convert back to long format for plotting
+    df = df_pivot.reset_index().melt(
+        id_vars="n", var_name="algo", value_name=col
+    )
+    df = df.dropna(subset=[col]).sort_values(by=["algo", "n"])
+    # ----------------------------------------------------
+
+    # Update axis labels and titles to reflect the baseline difference
+    baseline_str = " (Diff from TSP_gurobi)"
+
+    title = "Score Difference vs. Input Size" + title_addon
+    ylabel = col + " Score Difference"
+
+    palette = sns.color_palette("tab10", n_colors=df["algo"].nunique())
+    linestyle_map = {
+        "TSP_gurobi": "--",  # Baseline (will sit flat at y=0)
+        "TSP_LIN_TimeLim=30": "--",
+        "Hclust": ":",
+        "BAE": "-.",
+    }
+
+    for i, (algo, group) in enumerate(df.groupby("algo", observed=True)):
+        linewidth = 3.0 if algo in ["TSP_gurobi", "TSP_LIN_TimeLim=30"] else 2
+        if "TSP_gurobi" in algo or "TSP_LIN_TimeLim=30" in algo:
+            continue
+        linestyle = linestyle_map.get(algo, "-")
+        plt.plot(
+            group["n"],
+            group[col],
+            label=algo,
+            linewidth=linewidth,
+            linestyle=linestyle,
+            color=palette[i],
+        )
+
+    plt.xlabel("Size")
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.legend(title="Algorithm", loc="upper left")
+    plt.grid(True, linestyle="--", alpha=0.6)
+    plt.show()
+
+
+"""size_vs_col(
+    df,
+    col='time'
+    )
+
+size_vs_col(
+    df,
+    col='NS4',
+)
+
+size_vs_col(
+    df[df['dataset']=='Random'],
+    col='NS4',
+    title_addon=' on Random dataset'
+)"""
 
 good_algos = [
     "gurobi",
     "Hclust",
-    "BAE->",
+    "BAE",
     'TSP_LK',
     "TSP_LIN"
 ]
@@ -138,10 +225,15 @@ df = df[df["algo"].str.contains(pattern, na=False)]
 
 data = df
 
-size_vs_col(
-    df,
+size_vs_col2(
+    df[df['dataset']=='Random'],
+    col='NS4'
+)
+"""size_vs_col(
+    data[data['dataset']=='GDS_rand'],
     col='NS4',
     s=321,
+    title_addon=' on GDS dataset'
     )
 
 size_vs_col(
@@ -150,7 +242,7 @@ size_vs_col(
     s=322
     )
 
-"""df = data[data['dataset']=='Random']
+df = data[data['dataset']=='Random']
 
 size_vs_col(
     df,

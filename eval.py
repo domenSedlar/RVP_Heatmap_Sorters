@@ -32,6 +32,10 @@ def get_matrix(filepath, header=0):
         return None
         
     A = df.to_numpy()
+
+    if A.shape[0] >= 500:
+        return None
+    
     return A
 
 def ev(H, algo):
@@ -227,7 +231,9 @@ def old_code():
 if __name__ == "__main__":
     datasets = [
         #('Random', 'Data/Random', None),
-        ('GDS_rand', 'Data/GDS_Random', 0),
+        #('GDS_rand', 'Data/GDS_Random', 0),
+        #('GDSLarge', 'Data\Processed_Rand_Large', 0),
+        ('RandomLarge', 'Data\Huge_Random', None)
         ]
 
     rand_chain_lambda = lambda algo1, algo2, nm: Chain([algo1, RandomSorter(algo2, nm, moore_stress4)])
@@ -236,27 +242,27 @@ if __name__ == "__main__":
     bae_tsp = Chain([BAE(), TSP_LIN()])
     hclust_tsp = Chain([Hclust(), TSP_LIN()])
     algos = [
-        #(BAE(), False),
-        #(Hclust(), False),
+        (BAE(), False),
+        (Hclust(), False),
         #(RandomSorter(rand_block_swaps, "Rand_Block_Swaps", moore_stress4), False),
         #(RandomSorter(randomly_mirror,"Rand_Mirror", moore_stress4), False),
         #(RandomSorter(rand_swaps, "Rand_Swaps", moore_stress4), False),
-        #(rand_chain_lambda(Hclust(), rand_swaps, "Rand_Swaps"), False),
-        #(rand_chain_lambda(Hclust(), randomly_mirror, "Rand_Mirror"), False),
-        #(rand_chain_lambda(Hclust(), rand_block_swaps,"Rand_Block_Swaps"), False),
+        (rand_chain_lambda(Hclust(), rand_swaps, "Rand_Swaps"), False),
+        (rand_chain_lambda(Hclust(), randomly_mirror, "Rand_Mirror"), False),
+        (rand_chain_lambda(Hclust(), rand_block_swaps,"Rand_Block_Swaps"), False),
         #(rand_chain_lambda(BAE(), rand_swaps, "Rand_Swaps"), False),
-        #(rand_chain_lambda(BAE(), randomly_mirror, "Rand_Mirror"), False),
+        (rand_chain_lambda(BAE(), randomly_mirror, "Rand_Mirror"), False),
         #(rand_chain_lambda(BAE(), rand_block_swaps, "Rand_Block_Swaps"), False),
         #(Hclust(), False),
-        #(TSP_LK(), False), # TODO make sure this one is correct
+        (TSP_LK(), False),
 
-        #(TSP_gurobi(), False),
+        (TSP_gurobi(), False),
         #(TSP_LIN(), True),
-        #(Chain([BAE(), TSP_gurobi()]), False),
-        #(Chain([Hclust(), TSP_gurobi()]), False),
+        (Chain([BAE(), TSP_gurobi()]), False),
+        (Chain([Hclust(), TSP_gurobi()]), False),
         #(Chain([BAE(), TSP_LIN()]), True),
         #(Chain([Hclust(), TSP_LIN()]), True),
-        (TSP_LK(), False)
+        
     ]
     
     dataset_nm = datasets[0][0]
