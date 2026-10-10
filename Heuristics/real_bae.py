@@ -44,4 +44,4 @@ class real_BAE:
             raise NotImplementedError
         (rows, cols) = (bae(cr), bae(cc))
 
-        return H[rows][:, cols]
+        return H[rows][:, cols], False
