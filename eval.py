@@ -17,6 +17,7 @@ from Heuristics.hclust import Hclust
 from Heuristics.bae import BAE
 from Heuristics.rand_swap import rand_swaps, rand_block_swaps, randomly_mirror, RandomSorter
 from Heuristics.tsp_heur import TSP_LK
+from Heuristics.real_bae import real_BAE
 
 from chain import Chain
 
@@ -231,9 +232,9 @@ def old_code():
 if __name__ == "__main__":
     datasets = [
         #('Random', 'Data/Random', None),
-        #('GDS_rand', 'Data/GDS_Random', 0),
+        ('GDS_rand', 'Data/GDS_Random', 0),
         #('GDSLarge', 'Data\Processed_Rand_Large', 0),
-        ('RandomLarge', 'Data\Huge_Random', None)
+        #('RandomLarge', 'Data\Huge_Random', None)
         ]
 
     rand_chain_lambda = lambda algo1, algo2, nm: Chain([algo1, RandomSorter(algo2, nm, moore_stress4)])
@@ -242,27 +243,27 @@ if __name__ == "__main__":
     bae_tsp = Chain([BAE(), TSP_LIN()])
     hclust_tsp = Chain([Hclust(), TSP_LIN()])
     algos = [
-        (BAE(), False),
-        (Hclust(), False),
+        #(BAE(), False),
+        #(Hclust(), False),
         #(RandomSorter(rand_block_swaps, "Rand_Block_Swaps", moore_stress4), False),
         #(RandomSorter(randomly_mirror,"Rand_Mirror", moore_stress4), False),
         #(RandomSorter(rand_swaps, "Rand_Swaps", moore_stress4), False),
-        (rand_chain_lambda(Hclust(), rand_swaps, "Rand_Swaps"), False),
-        (rand_chain_lambda(Hclust(), randomly_mirror, "Rand_Mirror"), False),
-        (rand_chain_lambda(Hclust(), rand_block_swaps,"Rand_Block_Swaps"), False),
+        #(rand_chain_lambda(Hclust(), rand_swaps, "Rand_Swaps"), False),
+        #(rand_chain_lambda(Hclust(), randomly_mirror, "Rand_Mirror"), False),
+        #(rand_chain_lambda(Hclust(), rand_block_swaps,"Rand_Block_Swaps"), False),
         #(rand_chain_lambda(BAE(), rand_swaps, "Rand_Swaps"), False),
-        (rand_chain_lambda(BAE(), randomly_mirror, "Rand_Mirror"), False),
+        #(rand_chain_lambda(BAE(), randomly_mirror, "Rand_Mirror"), False),
         #(rand_chain_lambda(BAE(), rand_block_swaps, "Rand_Block_Swaps"), False),
         #(Hclust(), False),
-        (TSP_LK(), False),
+        #(TSP_LK(), False),
 
-        (TSP_gurobi(), False),
+        #(TSP_gurobi(), False),
         #(TSP_LIN(), True),
-        (Chain([BAE(), TSP_gurobi()]), False),
-        (Chain([Hclust(), TSP_gurobi()]), False),
+        #(Chain([BAE(), TSP_gurobi()]), False),
+        #(Chain([Hclust(), TSP_gurobi()]), False),
         #(Chain([BAE(), TSP_LIN()]), True),
         #(Chain([Hclust(), TSP_LIN()]), True),
-        
+        (real_BAE(), False),
     ]
     
     dataset_nm = datasets[0][0]
