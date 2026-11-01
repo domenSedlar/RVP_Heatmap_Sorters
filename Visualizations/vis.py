@@ -75,7 +75,7 @@ def tm_vs_score(df, title='', only_small=False, only_common=False, out_dir='./Im
     adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='gray', lw=1.5), force_text=(0.1,0.5))
     #plt.savefig(f"{out_dir}/{('Time vs Score' + title).replace(' ', '_')}.png", bbox_inches='tight')
 
-    plt.show()
+    #plt.show()
     #plt.clf()
 
 def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Images', s=111):
@@ -126,7 +126,7 @@ def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Ima
     plt.legend(title="Algorithm", loc='upper left')
     plt.grid(True, linestyle="--", alpha=0.6)
     #plt.savefig(f"./{out_dir}/{title.replace(' ', '_')}.png", bbox_inches='tight')
-    plt.show()
+    #plt.show()
     #plt.clf()
 
 """df = read()
