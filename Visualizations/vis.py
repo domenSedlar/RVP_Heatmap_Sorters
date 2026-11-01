@@ -23,9 +23,9 @@ def read(path='./Results/res.parquet')->pd.DataFrame:
     return df
 
 def tm_vs_score(df, title='', only_small=False, only_common=False, out_dir='./Images', s=111):
-    s = 111
+    #s = 111
     df = df.copy()
-    #ax = plt.subplot(s)
+    ax = plt.subplot(s)
     df['algo'] = df['algo'].astype("category")
     df = df.copy()
 
@@ -76,23 +76,11 @@ def tm_vs_score(df, title='', only_small=False, only_common=False, out_dir='./Im
     #plt.savefig(f"{out_dir}/{('Time vs Score' + title).replace(' ', '_')}.png", bbox_inches='tight')
 
     plt.show()
-    plt.clf()
-
-df = read()
-tm_vs_score(df, title='', s=321)
-tm_vs_score(df, title='', only_common=True)
-tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset', s=322)
-tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset', s=323)
-
-tm_vs_score(df, title='', only_common=True, s=324)
-tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset', only_common=True, s=325)
-tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset', only_common=True, s=326)
-tm_vs_score(df[df['dataset']=='SparseMatrixSuite'], title='SparseMatrixSuite')
-#plt.show()
+    #plt.clf()
 
 def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Images', s=111):
     #s=111
-    #plt.subplot(s)
+    plt.subplot(s)
     df = df.copy()
     
     if only_small:
@@ -139,75 +127,22 @@ def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Ima
     plt.grid(True, linestyle="--", alpha=0.6)
     #plt.savefig(f"./{out_dir}/{title.replace(' ', '_')}.png", bbox_inches='tight')
     plt.show()
-    plt.clf()
+    #plt.clf()
+
+"""df = read()
+tm_vs_score(df, title='', s=321)
+tm_vs_score(df, title='', only_common=True)
+tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset', s=322)
+tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset', s=323)
+
+tm_vs_score(df, title='', only_common=True, s=324)
+tm_vs_score(df[df['dataset']=='Random'], title=' on Random Subset', only_common=True, s=325)
+tm_vs_score(df[df['dataset']=='GDS_rand'], title=' on GDS_Rand Subset', only_common=True, s=326)
+tm_vs_score(df[df['dataset']=='SparseMatrixSuite'], title='SparseMatrixSuite')
+#plt.show()"""
 
 
-def size_vs_col2(
-    df,
-    col="NS4",
-    only_small=False,
-    title_addon="",
-    out_dir="./Results/imgs",
-    s=111,
-):
-    df = df.copy()
-
-    # Aggregate by algo and n
-    df = df.groupby(["algo", "n"], as_index=False)[col].mean()
-
-    # --- Pivot to subtract the baseline ('TSP_gurobi') ---
-    df_pivot = df.pivot(index="n", columns="algo", values=col)
-
-    if "TSP_gurobi" in df_pivot.columns:
-        # Subtract the baseline from all algorithm columns
-        df_pivot = df_pivot.sub(df_pivot["TSP_gurobi"], axis=0)
-
-    # Convert back to long format for plotting
-    df = df_pivot.reset_index().melt(
-        id_vars="n", var_name="algo", value_name=col
-    )
-    df = df.dropna(subset=[col]).sort_values(by=["algo", "n"])
-    # ----------------------------------------------------
-
-    # Update axis labels and titles to reflect the baseline difference
-    baseline_str = " (Diff from TSP_gurobi)"
-
-    title = "Score Difference vs. Input Size" + title_addon
-    ylabel = col + " Score Difference"
-
-    palette = sns.color_palette("tab10", n_colors=df["algo"].nunique())
-    linestyle_map = {
-        "TSP_gurobi": "--",  # Baseline (will sit flat at y=0)
-        "TSP_LIN_TimeLim=30": "--",
-        "Hclust": ":",
-        "BAE": "-.",
-    }
-
-    for i, (algo, group) in enumerate(df.groupby("algo", observed=True)):
-        linewidth = 3.0 if algo in ["TSP_gurobi", "TSP_LIN_TimeLim=30"] else 2
-        if "TSP_gurobi" in algo or "TSP_LIN_TimeLim=30" in algo:
-            continue
-        linestyle = linestyle_map.get(algo, "-")
-        plt.plot(
-            group["n"],
-            group[col],
-            label=algo,
-            linewidth=linewidth,
-            linestyle=linestyle,
-            color=palette[i],
-        )
-    manager = plt.get_current_fig_manager()
-    manager.window.state('zoomed')
-    
-    plt.xlabel("Size")
-    plt.ylabel(ylabel)
-    plt.title(title)
-    plt.legend(title="Algorithm", loc="upper left")
-    plt.grid(True, linestyle="--", alpha=0.6)
-    #plt.show()
-
-
-size_vs_col(
+"""size_vs_col(
     df,
     col='time'
     )
@@ -280,4 +215,4 @@ size_vs_col(
     title_addon=' on GDS_rand subset',
     s=326
     )
-#plt.show()
+#plt.show()"""
