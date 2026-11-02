@@ -25,6 +25,7 @@ def read(path='./Results/res.parquet')->pd.DataFrame:
 def tm_vs_score(df, title='', only_small=False, only_common=False, out_dir='./Images', s=111):
     #s = 111
     df = df.copy()
+    #df = df[df['algo'].str.contains('LIN') == False]
     ax = plt.subplot(s)
     df['algo'] = df['algo'].astype("category")
     df = df.copy()
@@ -51,8 +52,9 @@ def tm_vs_score(df, title='', only_small=False, only_common=False, out_dir='./Im
     points_x = []
     points_y = []
     labels = []
-    fig, ax = plt.subplots(figsize=(9,9))
+    #fig, ax = plt.subplots(figsize=(9,9))
     for algo in df['algo'].cat.categories:
+        print(algo)
         if algo == 'BAE->Hclust':
             continue
         labels.append(algo)
@@ -63,22 +65,21 @@ def tm_vs_score(df, title='', only_small=False, only_common=False, out_dir='./Im
         points_y.append(y)
     
     texts = []
-    for x, y, s in zip(points_x, points_y, labels):
-        s = s[:25]
-        texts.append(plt.text(x, y, s))
+    for x, y, lable in zip(points_x, points_y, labels):
+        texts.append(plt.text(x, y, lable))
     ax.scatter(points_x, points_y)
     plt.xlabel("Mean Time")
     plt.ylabel("Mean NS4 Score")
     plt.title('Time vs Score' + title)
     manager = plt.get_current_fig_manager()
-    manager.window.state('zoomed')
-    adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='gray', lw=1.5), force_text=(0.1,0.5))
+    #manager.window.state('zoomed')
+    adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='gray', lw=1.5), force_text=(0.35,0.9))
     #plt.savefig(f"{out_dir}/{('Time vs Score' + title).replace(' ', '_')}.png", bbox_inches='tight')
 
     #plt.show()
     #plt.clf()
 
-def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Images', s=111):
+def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Images', s=111, linestyle_map=None):
     #s=111
     plt.subplot(s)
     df = df.copy()
@@ -101,13 +102,15 @@ def size_vs_col(df, col='time', only_small=False, title_addon='', out_dir='./Ima
     
     # Track algorithm styles manually using Matplotlib directly
     # This guarantees Seaborn will never alter hue assignments or data grouping
-    palette = sns.color_palette('tab20', n_colors=df['algo'].nunique())
-    linestyle_map = {
-    'TSP_gurobi': '--',             # Dashed
-    'TSP_LIN_TimeLim=30': '--',     # Dashed
-    'Hclust': ':',                     # Dotted
-    'BAE': '-.'                  # Dash-dot
-}
+    palette = sns.color_palette('hls', n_colors=df['algo'].nunique())
+    if linestyle_map is None:
+        linestyle_map = {
+            'TSP_gurobi': '--',             # Dashed
+            'TSP_LIN_TimeLim=30': '--',     # Dashed
+            'Hclust': ':',                     # Dotted
+            'BAE': ':',                  # Dash-dot
+            'TSP_LK':'-.'
+        }
     for i, (algo, group) in enumerate(df.groupby('algo', observed=True)):
         linewidth = 3.0 if algo in ['TSP_gurobi', 'TSP_LIN_TimeLim=30'] else 2
         linestyle = linestyle_map.get(algo, '-')
