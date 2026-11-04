@@ -6,8 +6,9 @@ import re
 
 def read(path='./Results/res.parquet')->pd.DataFrame:
     df = pd.read_parquet(path)
-    df['n'] = df[['row_size', 'col_size']].values.min(1)
-    df['n'] = df['size']
+    #df['n'] = df[['row_size', 'col_size']].values.min(1)
+    #df['n'] = df['size']
+    df['n'] = df['row_size']
     df = df[df['algo'] != 'BAE->Hclust']
     df = df[df['dataset'] != 'GDSLarge']
     df = df[df['dataset'] != 'RandomLarge']

@@ -37,6 +37,24 @@ def hclust_with_olo(H, metric='NS', method='average'):
 
     return H[rows][:, cols]
 
+def hclust_with_olo_return_ordering(H, metric=Metric.NS, method='average'):
+    """
+        H ~ heatmap
+        metric : string - 'NS', 'ME', 'EC'
+    """
+    if metric == Metric.L2:
+        return hclust_euclidian(H), hclust_euclidian(H.T) #TODO test!
+    elif metric == Metric.NS:
+        c_row, c_col = create_matrices_ns(H, padding=False)
+    elif metric == Metric.ME4:
+        c_row, c_col = create_matrices_me(H, padding=False)
+    else:
+        return
+
+    rows = _hclust_with_olo(c_row, method=method)
+    cols = _hclust_with_olo(c_col, method=method)
+    return rows, cols
+
 class Hclust:
     def __init__(self, metric=Metric.NS, method='average'):
         self.metric = metric

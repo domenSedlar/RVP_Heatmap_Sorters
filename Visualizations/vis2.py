@@ -86,28 +86,34 @@ def mk_fig4(df):
     size_vs_col(df_gds, 'NS4', s=224, title_addon=' on gds dataset')
     plt.show()
 
-chain_algos = [
-    'Hclust->Rand_Block_Swaps',
-    'Hclust->Rand_Mirror',
-    'Hclust->Rand_Swaps',
-    'Hclust->TSP_gurobi',
-]
+def mk_fig5(df):
+    chain_algos = [
+        'Hclust->Rand_Block_Swaps',
+        'Hclust->Rand_Mirror',
+        'Hclust->Rand_Swaps',
+        'Hclust->TSP_gurobi',
+    ]
 
-non_chains = [
-    'Rand_Block_Swaps',
-    'Rand_Mirror',
-    'Rand_Swaps',
-    'TSP_gurobi',
-]
-df = df[~df['algo'].str.contains('GTSP')]
-pattern = "|".join(map(re.escape, chain_algos + non_chains + ['Hclust']))
-df = df[df["algo"].str.contains(pattern, na=False)]
+    non_chains = [
+        'Rand_Block_Swaps',
+        'Rand_Mirror',
+        'Rand_Swaps',
+        'TSP_gurobi',
+    ]
+    df = df[~df['algo'].str.contains('GTSP')]
+    pattern = "|".join(map(re.escape, chain_algos + non_chains + ['Hclust']))
+    df = df[df["algo"].str.contains(pattern, na=False)]
 
-df['algo'] = df['algo'].astype('category').cat.rename_categories(dict(zip(long_categories,new_categories)))
+    df['algo'] = df['algo'].astype('category').cat.rename_categories(dict(zip(long_categories,new_categories)))
 
-linestyle = [':' for _ in non_chains] + ['--']
-linestyle_map = dict(zip(non_chains + ['Hclust'], linestyle))
-size_vs_col(df, 'time', s=121, linestyle_map=linestyle_map)
-size_vs_col(df, 'NS4', s=122, linestyle_map=linestyle_map)
+    linestyle = [':' for _ in non_chains] + ['--']
+    linestyle_map = dict(zip(non_chains + ['Hclust'], linestyle))
+    size_vs_col(df, 'time', s=121, linestyle_map=linestyle_map)
+    size_vs_col(df, 'NS4', s=122, linestyle_map=linestyle_map)
 
-plt.show()
+    plt.show()
+#mk_tabl1(df)
+#mk_fig2(df)
+#mk_fig3(df)
+mk_fig4(df)
+#mk_fig5(df)
